@@ -5,7 +5,6 @@ import errorHandler from "./errorHandler.js"
 import { pgConnect, syncModels } from "./db.js"
 import productRouter from "../api/products/index.js"
 
-
 const server = express()
 const port = process.env.PORT || 3001
 

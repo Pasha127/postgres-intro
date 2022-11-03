@@ -3,8 +3,10 @@ import multer from "multer";
 import createHttpError from "http-errors";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import ProductModel from "./model.js";
+import ProductModel from "./ProductModel.js";
+import ReviewModel from "./ReviewModel.js";
 import { Op } from "sequelize";
+import ValidationError from "sequelize";
 
 
 
@@ -65,6 +67,10 @@ productRouter.post("/", async (req,res,next)=>{
         res.status(201).send({message:`Added a new product.`, id});
         
     }catch(error){
+        if(error.errors[0].type === 'Validation error'){
+            res.status(400).send({message:`Fields are required and can't include curse words.`});
+        }
+        
         next(error);
     }
 })
@@ -86,7 +92,11 @@ productRouter.put("/images/:productId/pic",cloudinaryUploader, async (req,res,ne
         if(numUpdated === 1){
             res.status(201).send({message: "Product Pic Uploaded"});
         }else{next(createHttpError(404, "Product Not Found"));}     
-    }catch(error){ next(error) }});
+    }catch(error){ 
+        if(error.errors[0].type === 'Validation error'){
+            res.status(400).send({message:`Fields are required and can't include curse words.`});
+        }
+        next(error) }});
     
 
     
@@ -115,95 +125,55 @@ productRouter.delete("/:productId", async (req,res,next)=>{
             where: {id:req.params.productId}
         })
         if(deleted === 1){
-            res.status(204).send({message:"product has been deleted."})
+            res.status(204).send({message:"Product has been deleted."})
         }else{
-            next(createHttpError(404, "product Not Found"));    
+            next(createHttpError(404, "Product not found."));    
         }
     }catch(error){
         next(error)
     }
 })
 ////______________-------------reviews---------------__________________
-//productRouter.post("/:productId/reviews/", checkReviewSchema, checkReviewValidationResult, async (req,res,next)=>{
-//    try{
-//        console.log(req.headers.origin, "POST product review at:", new Date());  
-//
-//        res.status(201).send({message:`Added a new review.`});
-//        
-//    }catch(error){
-//        console.log(error);
-//    }
-//})
-//productRouter.get("/:productId/reviews/:reviewId" , async (req,res,next)=>{
-//    try{
-//        console.log(req.headers.origin, "GET product at:", new Date());       
-//        const foundProduct = await productModel.findById(req.params.productId)       
-//        if(foundProduct){
-//            const foundReview = foundProduct.reviews.find(review => review._id.toString()===req.params.reviewId)
-//            console.log(foundReview)
-//            if(foundReview){
-//            res.status(200).send(foundReview);
-//            }else{next(createHttpError(404, "Review Not Found"));}
-//        }else{next(createHttpError(404, "Product Not Found"));
-//    } 
-//    }catch(error){
-//        console.log(error);
-//    }
-//})
-//productRouter.get("/:productId/reviews" , async (req,res,next)=>{
-//    try{
-//        console.log(req.headers.origin, "GET product at:", new Date());       
-//        const foundProduct = await productModel.findById(req.params.productId)       
-//        if(foundProduct){
-//            res.status(200).send(foundProduct.reviews);            
-//        }else{next(createHttpError(404, "Product Not Found"));
-//    } 
-//}catch(error){
-//    console.log(error);
-//}
-//})
-//
-//productRouter.put("/:productId/reviews/:reviewId" , async (req,res,next)=>{
-//    try{
-//        console.log(req.headers.origin, "PUT product at:", new Date());       
-//        const foundProduct = await productModel.findById(req.params.productId);
-//        if(foundProduct){            
-//            const foundReviewIndex = foundProduct.reviews.findIndex(review => review._id.toString()===req.params.reviewId);
-//            if(foundReviewIndex>-1){                
-//                foundProduct.reviews[foundReviewIndex] = {
-//                    ...foundProduct.reviews[foundReviewIndex],
-//                    ...req.body
-//                }
-//                await foundProduct.save()
-//               
-//            res.status(200).send({message: "Review updated successfully!"});
-//            }else{next(createHttpError(404, "Review Not Found"));}
-//        }else{next(createHttpError(404, "Product Not Found"));
-//    } 
-//    }catch(error){
-//        console.log(error);
-//    }
-//})
-//
-//
-//productRouter.delete("/:productId/reviews/:reviewId" , async (req,res,next)=>{
-//    try{
-//        console.log(req.headers.origin, "DELETE product at:", new Date());       
-//        const foundProduct = await productModel.findById(req.params.productId)       
-//        if(foundProduct){
-//            const foundReview = foundProduct.reviews.find(review => review._id.toString()===req.params.reviewId)
-//            console.log(foundReview)
-//            const foundReviewIndex = foundProduct.reviews.findIndex(review => review._id.toString()===req.params.reviewId)
-//            if(foundReviewIndex>-1){
-//                const deletedReview = await productModel.findByIdAndUpdate(req.params.productId,{$pull:{reviews:{_id: req.params.reviewId}}},{new:true});
-//                console.log(deletedReview)
-//            res.status(200).send(foundReview);
-//            }else{next(createHttpError(404, "Review Not Found"));}
-//        }else{next(createHttpError(404, "Product Not Found"));
-//    } 
-//    }catch(error){
-//        console.log(error);
-//    }
-//})
+productRouter.get("/reviews/", async (req,res,next)=>{
+    try{
+        console.log(req.headers.origin, "Get all reviews at:", new Date());
+        const query={};
+        if (req.query.comment) query.comment = {[Op.iLike]:`%${req.query.comment}%`}
+        if (req.query.rate) query.rate = {[Op.between]:req.query.rate.split(",")}        
+        const foundReviews = await ReviewModel.findAll({
+            where:{...query},
+            attributes: req.query.attributes? req.query.attributes.split(","):{}
+        }) 
+        if(reviews){res.status(200).send(reviews)}
+        else{createHttpError(404, "Reviews not found.")}
+    }catch(error){
+        next(error)
+    }
+})
+productRouter.get("/reviews/:productId", async (req,res,next)=>{
+    try{
+        console.log(req.headers.origin, "Get all reviews at:", new Date());
+        const reviews = await ReviewModel.findAll({where:{productId:req.params.productId}})
+        if(reviews){res.status(200).send(reviews)}
+        else{createHttpError(404, "Reviews not found.")}
+    }catch(error){
+        next(error)
+    }
+})
+productRouter.post("/reviews/:productId", async (req,res,next)=>{
+    try{
+        console.log(req.headers.origin, "POST review at:", new Date());
+        const {id} = await ReviewModel.create({...req.body, productId:req.params.productId});        
+        res.status(201).send({message:`Added a new review.`, id});
+        
+    }catch(error){
+        if(error.errors[0].type === 'Validation error'){
+            res.status(400).send({message:`Fields are required and can't include curse words.`});
+        }
+        next(error);
+    }
+})
+
+
 
 export default productRouter;
