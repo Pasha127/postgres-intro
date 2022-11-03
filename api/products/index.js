@@ -4,6 +4,8 @@ import createHttpError from "http-errors";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import ProductModel from "./model.js";
+import { Op } from "sequelize";
+
 
 
 const localEndpoint=`${process.env.LOCAL_URL}${process.env.PORT}/products`
@@ -35,6 +37,7 @@ productRouter.get("/", async (req,res,next)=>{
         })       
         res.status(200).send(foundProducts)        
     }catch(error){ 
+        console.log(error)
         next(error)
     }    
 })
@@ -55,7 +58,7 @@ productRouter.get("/:productId" , async (req,res,next)=>{
 })
 
 
-productRouter.post("/", checkProductSchema, checkValidationResult, async (req,res,next)=>{
+productRouter.post("/", async (req,res,next)=>{
     try{
         console.log(req.headers.origin, "POST product at:", new Date());
         const {id} = await ProductModel.create(req.body);        
@@ -74,10 +77,12 @@ productRouter.post("/", checkProductSchema, checkValidationResult, async (req,re
 productRouter.put("/images/:productId/pic",cloudinaryUploader, async (req,res,next)=>{
     try{     
         console.log("Tried to put a pic.", req.file.path);
-        const [numUpdated, updatedProducts] = await ProductModel.update(req.file.path, {
+        
+        const [numUpdated, updatedProducts] = await ProductModel.update({image: req.file.path}, {
             where: { id: req.params.productId },
             returning: true
           })
+          console.log(numUpdated)
         if(numUpdated === 1){
             res.status(201).send({message: "Product Pic Uploaded"});
         }else{next(createHttpError(404, "Product Not Found"));}     

@@ -3,7 +3,7 @@ import listEndpoints from "express-list-endpoints"
 import cors from "cors"
 import errorHandler from "./errorHandler.js"
 import { pgConnect, syncModels } from "./db.js"
-import usersRouter from "./api/users/index.js"
+import productRouter from "../api/products/index.js"
 
 
 const server = express()
