@@ -111,10 +111,10 @@ productRouter.put("/:productId", async (req,res,next)=>{
 productRouter.delete("/:productId", async (req,res,next)=>{
     try{
         console.log(req.headers.origin, "DELETE product at:", new Date());
-        const numDeleted = await ProductModel.destroy({
+        const deleted = await ProductModel.destroy({
             where: {id:req.params.productId}
         })
-        if(deletedProduct){
+        if(deleted === 1){
             res.status(204).send({message:"product has been deleted."})
         }else{
             next(createHttpError(404, "product Not Found"));    
