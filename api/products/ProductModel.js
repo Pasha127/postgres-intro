@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize"
 import sequelize from "../../src/db.js"
 import curses from "badwords-list";
+import ReviewModel from "./ReviewModel.js";
 
 const ProductModel = sequelize.define(
   "product",
@@ -42,9 +43,9 @@ const ProductModel = sequelize.define(
   }
   
 ) 
-ProductModel.associate= (models)=>{
-    ProductModel.hasMany(models.ReviewModel,
+/* ProductModel.associate= (models)=>{ */
+    ProductModel.hasMany(ReviewModel,
         {foreignKey: "productId",onDelete:"cascade", hooks:true})
-}
+    ReviewModel.belongsTo(ProductModel)
 
 export default ProductModel

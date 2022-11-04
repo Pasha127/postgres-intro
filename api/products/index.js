@@ -167,6 +167,19 @@ productRouter.get("/reviews/:productId", async (req,res,next)=>{
         next(error)
     }
 })
+productRouter.get("/review/:reviewId", async (req,res,next)=>{
+    try{
+        console.log(req.headers.origin, "Get review at:", new Date());               
+        const foundReview = await ReviewModel.findAll({
+            where:{id: req.params.reviewId },
+            attributes: req.query.attributes? req.query.attributes.split(","):{}
+        }) 
+        if(foundReview){res.status(200).send(foundReview)}
+        else{createHttpError(404, "Review not found.")}
+    }catch(error){
+        next(error)
+    }
+})
 productRouter.post("/reviews/:productId", async (req,res,next)=>{
     try{
         console.log(req.headers.origin, "POST review at:", new Date());

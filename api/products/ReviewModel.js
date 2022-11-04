@@ -21,15 +21,7 @@ const ReviewModel = sequelize.define(
         type: DataTypes.INTEGER,
         allowNull: false,
         validate: {min:1,max:5}
-      },
-    productId:{
-      type: DataTypes.UUID,
-      allowNull:false,
-      references:{
-        model:ProductModel, 
-        key: 'id'
       }
-    }
   }
   
 ) 
