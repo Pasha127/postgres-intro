@@ -44,7 +44,7 @@ const ProductModel = sequelize.define(
 ) 
 ProductModel.associate= (models)=>{
     ProductModel.hasMany(models.ReviewModel,
-       {onDelete:"CASCADE", foreignKey:'productId'})
+        {foreignKey: "productId",onDelete:"cascade", hooks:true})
 }
 
 export default ProductModel

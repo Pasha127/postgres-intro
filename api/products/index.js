@@ -67,7 +67,7 @@ productRouter.post("/", async (req,res,next)=>{
         res.status(201).send({message:`Added a new product.`, id});
         
     }catch(error){
-        if(error.errors[0].type === 'Validation error'){
+        if(error.errors && error.errors[0].type === 'Validation error'){
             res.status(400).send({message:`Fields are required and can't include curse words.`});
         }
         
@@ -93,7 +93,7 @@ productRouter.put("/images/:productId/pic",cloudinaryUploader, async (req,res,ne
             res.status(201).send({message: "Product Pic Uploaded"});
         }else{next(createHttpError(404, "Product Not Found"));}     
     }catch(error){ 
-        if(error.errors[0].type === 'Validation error'){
+        if(error.errors && error.errors[0].type === 'Validation error'){
             res.status(400).send({message:`Fields are required and can't include curse words.`});
         }
         next(error) }});
@@ -130,6 +130,7 @@ productRouter.delete("/:productId", async (req,res,next)=>{
             next(createHttpError(404, "Product not found."));    
         }
     }catch(error){
+        console.log(error)
         next(error)
     }
 })
@@ -144,7 +145,7 @@ productRouter.get("/reviews/", async (req,res,next)=>{
             where:{...query},
             attributes: req.query.attributes? req.query.attributes.split(","):{}
         }) 
-        if(reviews){res.status(200).send(reviews)}
+        if(foundReviews){res.status(200).send(foundReviews)}
         else{createHttpError(404, "Reviews not found.")}
     }catch(error){
         next(error)
@@ -153,8 +154,14 @@ productRouter.get("/reviews/", async (req,res,next)=>{
 productRouter.get("/reviews/:productId", async (req,res,next)=>{
     try{
         console.log(req.headers.origin, "Get all reviews at:", new Date());
-        const reviews = await ReviewModel.findAll({where:{productId:req.params.productId}})
-        if(reviews){res.status(200).send(reviews)}
+        const query={};
+        if (req.query.comment) query.comment = {[Op.iLike]:`%${req.query.comment}%`}
+        if (req.query.rate) query.rate = {[Op.between]:req.query.rate.split(",")}        
+        const foundReviews = await ReviewModel.findAll({
+            where:{...query,productId: req.params.productId },
+            attributes: req.query.attributes? req.query.attributes.split(","):{}
+        }) 
+        if(foundReviews){res.status(200).send(foundReviews)}
         else{createHttpError(404, "Reviews not found.")}
     }catch(error){
         next(error)
@@ -167,13 +174,45 @@ productRouter.post("/reviews/:productId", async (req,res,next)=>{
         res.status(201).send({message:`Added a new review.`, id});
         
     }catch(error){
-        if(error.errors[0].type === 'Validation error'){
+        if(error.errors && error.errors[0].type === 'Validation error'){
             res.status(400).send({message:`Fields are required and can't include curse words.`});
         }
         next(error);
     }
 })
-
+productRouter.put("/reviews/:reviewId", async (req,res,next)=>{
+    try{
+        console.log(req.headers.origin, "PUT review at:", new Date());
+        const [numUpdated, updatedReviews] = await ReviewModel.update(req.body, {
+            where: { id: req.params.reviewId },
+            returning: true
+          })
+        if(numUpdated === 1){
+            res.status(200).send(updatedReviews[0]);
+        }else{next(createHttpError(404, "Review Not Found"));}       
+        
+    }catch(error){
+        if(error.errors && error.errors[0].type === 'Validation error'){
+            res.status(400).send({message:`Fields are required and can't include curse words.`});
+        }
+        next(error);
+    }
+})
+productRouter.delete("/reviews/:reviewId", async (req,res,next)=>{
+    try{
+        console.log(req.headers.origin, "DELETE review at:", new Date());
+        const deleted = await ReviewModel.destroy({
+            where: {id:req.params.reviewId}
+        })
+        if(deleted === 1){
+            res.status(204).send({message:"Review has been deleted."})
+        }else{
+            next(createHttpError(404, "Review not found."));    
+        }
+    }catch(error){
+        next(error)
+    }
+})
 
 
 export default productRouter;

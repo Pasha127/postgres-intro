@@ -26,7 +26,7 @@ const ReviewModel = sequelize.define(
       type: DataTypes.UUID,
       allowNull:false,
       references:{
-        model:ProductModel,
+        model:ProductModel, 
         key: 'id'
       }
     }
