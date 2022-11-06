@@ -6,6 +6,7 @@ import { pgConnect, syncModels } from "./db.js"
 import productRouter from "../api/products/index.js"
 import userRouter from "../api/users/index.js"
 import cartRouter from "../api/cart/index.js"
+import categoryRouter from "../api/categories/index.js"
 
 
 const server = express()

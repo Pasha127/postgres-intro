@@ -1,7 +1,8 @@
 import express from "express";
 import createHttpError from "http-errors";
 import { Op } from "sequelize";
-import UserModel from "./CategoryModel.js";
+import UserModel from "./UserModel.js";
+
 
 
 

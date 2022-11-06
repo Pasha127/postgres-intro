@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize"
-import sequelize from "../../src/db"
+import sequelize from "../../src/db.js"
 import curses from "badwords-list";
 
 const CategoryModel = await sequelize.define("category", {

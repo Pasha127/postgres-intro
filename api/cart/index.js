@@ -1,7 +1,7 @@
 import express from "express";
 import createHttpError from "http-errors";
 import { Op } from "sequelize";
-import CartModel from "./CartModel";
+import CartModel from "./CartModel.js";
 
 
 

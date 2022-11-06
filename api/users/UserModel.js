@@ -1,10 +1,10 @@
 import { DataTypes } from "sequelize"
-import sequelize from "../../db.js"
 import curses from "badwords-list";
 import ProductModel from "../products/ProductModel.js";
 import ReviewModel from "../products/ReviewModel.js";
 import CartModel from "../cart/CartModel.js";
-
+import sequelize from "../../src/db.js";
+import UserCartModel from "../junctions/UserCartModel.js";
 
 const UserModel = sequelize.define(
   "user",

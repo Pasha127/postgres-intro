@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize"
-import sequelize from "../../src/db.js"
 import curses from "badwords-list";
+import sequelize from "../../src/db.js";
 
 const CartModel = sequelize.define(
   "cart",
