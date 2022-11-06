@@ -43,7 +43,7 @@ const ProductModel = sequelize.define(
   }
   
 ) 
-/* ProductModel.associate= (models)=>{ */
+
     ProductModel.hasMany(ReviewModel,
         {foreignKey: "productId",onDelete:"cascade", hooks:true})
     ReviewModel.belongsTo(ProductModel)
