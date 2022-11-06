@@ -9,6 +9,8 @@ const CategoryModel = await sequelize.define("category", {
     primaryKey: true,
   },
   name: {
+    type: DataTypes.STRING,
+    allowNull: false,
     unique: true,
     validate: {notEmpty: true,not: curses.regex}
   },
