@@ -7,7 +7,7 @@ import ProductModel from "./ProductModel.js";
 import ReviewModel from "./ReviewModel.js";
 import { Op } from "sequelize";
 import ValidationError from "sequelize";
-
+import CategoryModel from "../categories/CategoryModel.js";
 
 
 const localEndpoint=`${process.env.LOCAL_URL}${process.env.PORT}/products`
@@ -35,6 +35,7 @@ productRouter.get("/", async (req,res,next)=>{
         if (req.query.category) query.category = {[Op.iLike]:`%${req.query.category}%`}
         const foundProducts = await ProductModel.findAll({
             where:{...query},
+            include:{model:CategoryModel},
             attributes: req.query.attributes? req.query.attributes.split(","):{}
         })       
         res.status(200).send(foundProducts)        
